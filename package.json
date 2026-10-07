@@ -1,0 +1,9 @@
+{
+  "name": "study-buddy",
+  "version": "1.0.0",
+  "description": "Expert System Study Method Recommender",
+  "scripts": {
+    "dev": "python app.py",
+    "start": "python app.py"
+  }
+}
