@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Study Buddy — Expert Study Method Recommender</title>
+  <meta name="description" content="Tell Study Buddy what you're studying and what's tripping you up. Our expert system recommends a proven study method with actionable steps.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Ambient background blobs -->
+  <div class="bg-glow" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Study Buddy home">
+      <span class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </span>
+      <span>Study Buddy</span>
+    </a>
+    <span class="badge"><span class="badge-dot"></span>Expert System</span>
+  </header>
+
+  <main>
+    <section class="intro" id="intro">
+      <div class="eyebrow"><span class="spark">✦</span> YOUR STUDY SESSION, SORTED</div>
+      <h1>Not sure how to<br><em>study for this?</em></h1>
+      <p>Answer three quick questions. Our expert system matches you with a <strong>proven study method</strong> and actionable steps.</p>
+    </section>
+
+    <section class="planner glass-card" aria-label="Study tip recommender">
+      <!-- Step 1: Subject -->
+      <div class="step" id="step-1">
+        <div class="step-header">
+          <span class="step-number">01</span>
+          <label>What are you studying?</label>
+        </div>
+      </div>
+      <div class="subject-grid" id="subject-grid" role="radiogroup" aria-label="Choose a subject">
+        <button class="subject" data-value="Math" type="button">
+          <span class="subject-icon">∑</span>
+          <span class="subject-name">Math</span>
+          <span class="check-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        </button>
+        <button class="subject" data-value="Science" type="button">
+          <span class="subject-icon">🔬</span>
+          <span class="subject-name">Science</span>
+          <span class="check-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        </button>
+        <button class="subject" data-value="History" type="button">
+          <span class="subject-icon">📜</span>
+          <span class="subject-name">History</span>
+          <span class="check-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        </button>
+        <button class="subject" data-value="English" type="button">
+          <span class="subject-icon">✍️</span>
+          <span class="subject-name">English</span>
+          <span class="check-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        </button>
+        <button class="subject" data-value="Programming" type="button">
+          <span class="subject-icon">💻</span>
+          <span class="subject-name">Programming</span>
+          <span class="check-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        </button>
+        <button class="subject" data-value="Other" type="button">
+          <span class="subject-icon">📚</span>
+          <span class="subject-name">Other</span>
+          <span class="check-ring"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Step 2: Struggle -->
+      <div class="step" id="step-2">
+        <div class="step-header">
+          <span class="step-number">02</span>
+          <label for="struggle">What's tripping you up?</label>
+        </div>
+      </div>
+      <div class="select-wrap">
+        <select id="struggle" required disabled>
+          <option value="" disabled selected>Choose a subject first…</option>
+        </select>
+        <span class="select-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Step 3: Time -->
+      <div class="step" id="step-3">
+        <div class="step-header">
+          <span class="step-number">03</span>
+          <label>How much time do you have?</label>
+        </div>
+      </div>
+      <div class="time-grid" id="time-grid" role="radiogroup" aria-label="Available study time">
+        <button class="time-btn" data-value="short" type="button">
+          <span class="time-icon">⚡</span>
+          <div class="time-text">
+            <span class="time-label">~15 min</span>
+            <span class="time-desc">Quick session</span>
+          </div>
+        </button>
+        <button class="time-btn active" data-value="medium" type="button">
+          <span class="time-icon">⏱️</span>
+          <div class="time-text">
+            <span class="time-label">~30 min</span>
+            <span class="time-desc">Solid session</span>
+          </div>
+        </button>
+        <button class="time-btn" data-value="long" type="button">
+          <span class="time-icon">📖</span>
+          <div class="time-text">
+            <span class="time-label">60+ min</span>
+            <span class="time-desc">Deep dive</span>
+          </div>
+        </button>
+      </div>
+
+      <button class="submit" id="recommend" type="button">
+        <span class="submit-text">Find my study method</span>
+        <span class="submit-arrow">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </span>
+      </button>
+      <p class="error" id="error" role="alert" aria-live="polite"></p>
+    </section>
+
+    <!-- Result -->
+    <section class="result glass-card" id="result" aria-live="polite" hidden>
+      <div class="result-top">
+        <span class="result-icon">✦</span>
+        <span class="result-tag">YOUR PERSONALIZED PLAN</span>
+      </div>
+      <div class="result-meta" id="result-meta"></div>
+      <h2 id="method-name"></h2>
+      <p class="method-reason" id="method-reason"></p>
+
+      <!-- Steps Box with interactive checklist -->
+      <div class="steps-box">
+        <div class="steps-header-row">
+          <div class="steps-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span>ACTIONABLE STEPS</span>
+          </div>
+          <span class="progress-pill" id="steps-progress">0/0 done</span>
+        </div>
+        <p class="steps-hint">Click any step to mark it completed as you work:</p>
+        <ol class="steps-list" id="steps-list"></ol>
+      </div>
+
+      <!-- Built-in Study Sprint Timer -->
+      <div class="timer-box" id="timer-box">
+        <div class="timer-header">
+          <div class="timer-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>FOCUS SPRINT TIMER</span>
+          </div>
+          <span class="timer-status" id="timer-status">Ready</span>
+        </div>
+        <div class="timer-display" id="timer-display">25:00</div>
+        <div class="timer-controls">
+          <button type="button" class="btn-timer" id="timer-toggle">
+            <svg id="timer-play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="timer-btn-text">Start Focus Timer</span>
+          </button>
+          <button type="button" class="btn-timer-secondary" id="timer-reset" title="Reset timer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="time-note-box">
+        <div class="time-note-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>TIME NOTE</span>
+        </div>
+        <p id="time-note"></p>
+      </div>
+
+      <div class="rule-trace" id="rule-trace"></div>
+
+      <!-- Result actions -->
+      <div class="result-actions">
+        <button type="button" class="action-btn copy-btn" id="copy-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span id="copy-text">Copy Plan</span>
+        </button>
+        <button type="button" class="action-btn again" id="again">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Start over
+        </button>
+      </div>
+    </section>
+
+    <p class="footnote"><span class="spark">✦</span> Small steps count. You've got this.</p>
+  </main>
+  <footer>
+    <span>STUDY BUDDY</span> · BUILT WITH AN EXPERT SYSTEM · MADE FOR THE DAYS WHEN THE NOTES FEEL LIKE A LOT
+  </footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>
