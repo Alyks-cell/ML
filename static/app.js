@@ -25,6 +25,9 @@ const stepsList = document.getElementById("steps-list");
 const stepsProgress = document.getElementById("steps-progress");
 const copyBtn = document.getElementById("copy-btn");
 const copyText = document.getElementById("copy-text");
+const alternativesList = document.getElementById("alternatives-list");
+const markDoneBtn = document.getElementById("mark-done");
+const streakSummary = document.getElementById("streak-summary");
 
 /* ── State ────────────────────────────────────────────────────── */
 let selectedSubject = "";
@@ -62,8 +65,12 @@ subjectGrid.addEventListener("click", async (e) => {
   if (!btn) return;
 
   // Toggle active styling
-  subjectGrid.querySelectorAll(".subject").forEach((b) => b.classList.remove("active"));
+  subjectGrid.querySelectorAll(".subject").forEach((b) => {
+    b.classList.remove("active");
+    b.setAttribute("aria-pressed", "false");
+  });
   btn.classList.add("active");
+  btn.setAttribute("aria-pressed", "true");
   selectedSubject = btn.dataset.value;
 
   // Hide any previous result
@@ -100,8 +107,12 @@ subjectGrid.addEventListener("click", async (e) => {
 timeGrid.addEventListener("click", (e) => {
   const btn = e.target.closest(".time-btn");
   if (!btn) return;
-  timeGrid.querySelectorAll(".time-btn").forEach((b) => b.classList.remove("active"));
+  timeGrid.querySelectorAll(".time-btn").forEach((b) => {
+    b.classList.remove("active");
+    b.setAttribute("aria-pressed", "false");
+  });
   btn.classList.add("active");
+  btn.setAttribute("aria-pressed", "true");
   selectedTime = btn.dataset.value;
 });
 
@@ -140,10 +151,24 @@ recommendBtn.addEventListener("click", async () => {
 
     // Populate recommendation content
     document.getElementById("method-name").textContent = data.method;
-    document.getElementById("method-reason").textContent = data.reason;
+    const timePhrase = selectedTime === "short" ? "about 15 minutes" : selectedTime === "long" ? "an hour or more" : "about 30 minutes";
+    document.getElementById("method-reason").textContent =
+      `Because you said you're struggling with ${data.struggle.toLowerCase()} in ${data.subject}, and you have ${timePhrase}, ${data.method} gives you a focused way to practice. ${data.reason}`;
     document.getElementById("time-note").textContent = data.time_note;
     document.getElementById("result-meta").textContent =
       `${data.subject} · ${data.struggle} · ${data.time_label}`;
+
+    alternativesList.replaceChildren();
+    (data.alternatives || []).forEach((alternative) => {
+      const item = document.createElement("li");
+      const name = document.createElement("strong");
+      name.textContent = alternative.method;
+      item.append(name, document.createTextNode(` — ${alternative.description}`));
+      alternativesList.appendChild(item);
+    });
+    markDoneBtn.disabled = false;
+    markDoneBtn.textContent = "Mark session done";
+    renderStreak();
 
     // Populate actionable steps checklist
     stepsList.innerHTML = "";
@@ -152,13 +177,14 @@ recommendBtn.addEventListener("click", async () => {
       li.textContent = step;
       li.setAttribute("role", "checkbox");
       li.setAttribute("aria-checked", "false");
+      li.tabIndex = 0;
       stepsList.appendChild(li);
     });
     updateProgress();
 
     // Rule trace for transparency
     document.getElementById("rule-trace").textContent =
-      `Inference engine rule fired: ${data.rule_used}`;
+      `Matched to your ${data.subject.toLowerCase()} challenge: ${data.struggle.toLowerCase()}.`;
 
     // Setup focus timer based on selected duration
     setupTimer(selectedTime);
@@ -183,6 +209,13 @@ stepsList.addEventListener("click", (e) => {
   updateProgress();
 });
 
+stepsList.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches("li[role='checkbox']")) {
+    e.preventDefault();
+    e.target.click();
+  }
+});
+
 function updateProgress() {
   if (!stepsProgress) return;
   const all = stepsList.querySelectorAll("li");
@@ -191,6 +224,40 @@ function updateProgress() {
   if (all.length > 0 && done.length === all.length) {
     stepsProgress.textContent = "All steps complete! 🎉";
   }
+}
+
+function renderStreak() {
+  if (!streakSummary) return;
+  const saved = JSON.parse(localStorage.getItem("study-buddy-progress") || "{}");
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const dateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const streak = [dateKey(today), dateKey(yesterday)].includes(saved.lastCompleted) ? Number(saved.streak) || 0 : 0;
+  const sessions = Number(saved.sessions) || 0;
+  streakSummary.textContent = sessions
+    ? `${sessions} ${sessions === 1 ? "session" : "sessions"} completed · ${streak}-day streak`
+    : "No sessions completed yet. Your progress is saved on this device.";
+}
+
+if (markDoneBtn) {
+  markDoneBtn.addEventListener("click", () => {
+    const dateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const today = dateKey(new Date());
+    const progress = JSON.parse(localStorage.getItem("study-buddy-progress") || "{}");
+    if (progress.lastCompleted !== today) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayKey = dateKey(yesterday);
+      progress.streak = progress.lastCompleted === yesterdayKey ? (Number(progress.streak) || 0) + 1 : 1;
+      progress.lastCompleted = today;
+    }
+    progress.sessions = (Number(progress.sessions) || 0) + 1;
+    localStorage.setItem("study-buddy-progress", JSON.stringify(progress));
+    renderStreak();
+    markDoneBtn.disabled = true;
+    markDoneBtn.textContent = "Session done";
+  });
 }
 
 /* ── Focus Sprint Timer ────────────────────────────────────────── */
@@ -306,10 +373,11 @@ if (copyBtn) {
       .map((step, idx) => `${idx + 1}. ${step}`)
       .join("\n");
 
-    const textToCopy = `📚 Study Plan: ${currentPlanData.method}\n` +
+    const textToCopy = `Study Plan: ${currentPlanData.method}\n` +
       `Subject: ${currentPlanData.subject} (${currentPlanData.struggle})\n` +
       `Duration: ${currentPlanData.time_label}\n\n` +
-      `Why it helps:\n${currentPlanData.reason}\n\n` +
+      `Why this method:\n${document.getElementById("method-reason").textContent}\n\n` +
+      `Other methods to try:\n${(currentPlanData.alternatives || []).map((item) => `${item.method}: ${item.description}`).join("\n")}\n\n` +
       `Actionable Steps:\n${formattedSteps}\n\n` +
       `Time Tip:\n${currentPlanData.time_note}`;
 
@@ -333,7 +401,10 @@ document.getElementById("again").addEventListener("click", () => {
   stopTimer();
 
   // Reset subject
-  subjectGrid.querySelectorAll(".subject").forEach((b) => b.classList.remove("active"));
+  subjectGrid.querySelectorAll(".subject").forEach((b) => {
+    b.classList.remove("active");
+    b.setAttribute("aria-pressed", "false");
+  });
   selectedSubject = "";
 
   // Reset struggle dropdown
@@ -341,9 +412,15 @@ document.getElementById("again").addEventListener("click", () => {
   struggleSelect.disabled = true;
 
   // Reset time to medium
-  timeGrid.querySelectorAll(".time-btn").forEach((b) => b.classList.remove("active"));
+  timeGrid.querySelectorAll(".time-btn").forEach((b) => {
+    b.classList.remove("active");
+    b.setAttribute("aria-pressed", "false");
+  });
   const defaultTimeBtn = timeGrid.querySelector('[data-value="medium"]');
-  if (defaultTimeBtn) defaultTimeBtn.classList.add("active");
+  if (defaultTimeBtn) {
+    defaultTimeBtn.classList.add("active");
+    defaultTimeBtn.setAttribute("aria-pressed", "true");
+  }
   selectedTime = "medium";
 
   // Clear errors and scroll up

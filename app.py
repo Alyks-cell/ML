@@ -78,10 +78,10 @@ RULES = {
         "Formula Deconstruction",
         "Breaking a formula into named parts and practicing it in context builds both understanding and recall.",
         [
-            "Write the formula and label every symbol in plain language.",
-            "Study one worked example that uses the formula.",
-            "Cover the example and solve a similar problem from memory.",
-            "Check your answer, note mistakes, and retry the ones you missed.",
+            "Write the formula and label what each symbol means.",
+            "Solve five practice problems without looking at the formula or solution.",
+            "Check your answers and note which formulas or steps you forgot.",
+            "Retry the missed problems from memory, then explain when the formula applies.",
         ],
     ),
     ("math", "solving word problems"): (
@@ -162,10 +162,10 @@ RULES = {
         "Because → Therefore Chain",
         "Tracing a chain of causes shows how events lead into each other instead of seeming random.",
         [
-            "Pick an event and ask: 'Why did this happen?' Write the cause.",
-            "For that cause, ask 'Why?' again — go back at least 2 levels.",
-            "Now go forward: 'What happened because of this event?'",
-            "Summarize the chain in one paragraph.",
+            "Make a timeline of five key events in this topic.",
+            "For each event, write one cause and one effect.",
+            "Cover your notes and quiz yourself on what caused each event and what followed.",
+            "Check your answers and explain the strongest cause-and-effect link in your own words.",
         ],
     ),
     ("history", "connecting themes across eras"): (
@@ -357,6 +357,22 @@ TIME_MODIFIERS = {
     },
 }
 
+ALTERNATIVE_METHODS = {
+    "Spaced Repetition": "Review the same ideas again after a short delay to strengthen long-term recall.",
+    "Active Recall": "Close your notes and retrieve the answer from memory before checking it.",
+    "Feynman Technique": "Explain the idea in plain language, then revisit any part you cannot explain.",
+    "Cornell Notes": "Turn your notes into cue questions and use them to quiz yourself later.",
+    "Pomodoro": "Focus on one task for a timed sprint, then take a short break.",
+}
+
+METHOD_ALTERNATIVES = {
+    "active recall": ["Spaced Repetition", "Feynman Technique"],
+    "spaced repetition": ["Active Recall", "Cornell Notes"],
+    "feynman technique": ["Active Recall", "Cornell Notes"],
+    "cornell notes": ["Active Recall", "Spaced Repetition"],
+    "pomodoro": ["Active Recall", "Spaced Repetition"],
+}
+
 
 def get_struggles(subject):
     """Return the list of struggles relevant to a subject."""
@@ -397,10 +413,16 @@ def recommend(subject, struggle, time_available="medium"):
     # Apply time modifier
     time_info = TIME_MODIFIERS.get(time_available, TIME_MODIFIERS["medium"])
     adjusted_steps = steps[: time_info["max_steps"]]
+    alternatives = [
+        {"method": name, "description": ALTERNATIVE_METHODS[name]}
+        for name in METHOD_ALTERNATIVES.get(method.lower(), ["Active Recall", "Spaced Repetition"])
+        if not method.lower().startswith(name.lower())
+    ][:2]
 
     return {
         "method": method,
         "reason": reason,
+        "alternatives": alternatives,
         "steps": adjusted_steps,
         "time_note": time_info["note"],
         "time_label": time_info["label"],
