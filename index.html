@@ -146,7 +146,7 @@
         </button>
       </div>
 
-      <button class="submit" id="recommend" type="button">
+      <button class="submit" id="recommend" type="button" aria-live="polite">
         <span class="submit-text">Find my study method</span>
         <span class="submit-arrow">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -162,6 +162,7 @@
         <span class="result-tag">YOUR PERSONALIZED PLAN</span>
       </div>
       <div class="result-meta" id="result-meta"></div>
+      <div class="fit-row" aria-live="polite"><strong id="fit-label"></strong><span id="fit-basis"></span></div>
       <h2 id="method-name"></h2>
       <section class="why-card" aria-labelledby="why-title">
         <h3 id="why-title">Why this method?</h3>
@@ -186,12 +187,17 @@
         <ol class="steps-list" id="steps-list"></ol>
       </div>
 
+      <section class="time-breakdown-box" aria-labelledby="time-breakdown-title">
+        <h3 id="time-breakdown-title">Your time breakdown</h3>
+        <ol id="time-breakdown-list" class="time-breakdown-list"></ol>
+      </section>
+
       <!-- Built-in Study Sprint Timer -->
       <div class="timer-box" id="timer-box">
         <div class="timer-header">
           <div class="timer-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>FOCUS SPRINT TIMER</span>
+            <span>STUDY TIMER</span>
           </div>
           <span class="timer-status" id="timer-status">Ready</span>
         </div>
@@ -199,7 +205,7 @@
         <div class="timer-controls">
           <button type="button" class="btn-timer" id="timer-toggle">
             <svg id="timer-play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            <span id="timer-btn-text">Start Focus Timer</span>
+            <span id="timer-btn-text">Start Timer</span>
           </button>
           <button type="button" class="btn-timer-secondary" id="timer-reset" title="Reset timer">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
@@ -232,6 +238,12 @@
         <button type="button" class="done-btn" id="mark-done">Mark session done</button>
         <p id="streak-summary" aria-live="polite">No sessions completed yet.</p>
       </div>
+      <div class="feedback-panel" id="feedback-panel" hidden>
+        <p>Did this recommendation help?</p>
+        <button type="button" class="feedback-btn" data-rating="helped">Yes, it helped</button>
+        <button type="button" class="feedback-btn" data-rating="not-helped">Not really</button>
+        <span id="feedback-status" aria-live="polite"></span>
+      </div>
     </section>
 
     <section class="method-library glass-card" id="method-library" aria-labelledby="library-title">
@@ -243,6 +255,11 @@
         <details><summary>Active recall</summary><p>Close your notes and retrieve the answer from memory. Use a blank page, flashcards, or practice questions, then check what you missed.</p></details>
         <details><summary>Feynman technique</summary><p>Explain an idea in plain language as if teaching a beginner. Find the parts you cannot explain simply, review them, and try again.</p></details>
         <details><summary>Cornell notes</summary><p>Divide a page into notes, cue questions, and a short summary. Later, cover the notes and use the cues to test what you remember.</p></details>
+      </div>
+      <div class="research-notes" aria-labelledby="research-title">
+        <h3 id="research-title">Research behind these methods</h3>
+        <p>Practice testing and spaced study have strong research support. In a study by <a href="https://doi.org/10.1111/j.1467-9280.2006.01693.x" target="_blank" rel="noopener noreferrer">Roediger and Karpicke (2006)</a>, retrieval practice improved delayed retention compared with repeated study. A meta-analysis by <a href="https://pubmed.ncbi.nlm.nih.gov/16719566/" target="_blank" rel="noopener noreferrer">Cepeda and colleagues (2006)</a> examined spacing across 317 experiments. A broader review by <a href="https://www.psychologicalscience.org/publications/journals/pspi/learning-techniques.html" target="_blank" rel="noopener noreferrer">Dunlosky and colleagues (2013)</a> rated practice testing and distributed practice as high-utility techniques.</p>
+        <p>These findings support the methods in general; Study Buddy’s subject-and-challenge matches and fit labels are practical rules, not individually validated predictions.</p>
       </div>
     </section>
 

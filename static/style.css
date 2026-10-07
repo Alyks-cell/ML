@@ -1236,4 +1236,68 @@ footer span {
 }
 /* Keep filled accent buttons readable in both themes. */
 .submit,
-.btn-timer { color: var(--text-inverse); }
+.btn-timer { color: var(--text-inverse); }.fit-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+}
+.fit-row strong { color: var(--accent); }
+.feedback-panel {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--bg-card-border);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+}
+.feedback-panel[hidden] { display: none; }
+.feedback-panel p { margin: 0 0 10px; color: var(--text-primary); font-size: 14px; font-weight: 700; }
+.feedback-btn {
+  min-height: 44px;
+  margin: 0 8px 8px 0;
+  padding: 8px 14px;
+  border: 1px solid var(--bg-card-border);
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+.feedback-btn:hover:not(:disabled) { border-color: var(--accent); }
+.feedback-btn:disabled { opacity: 0.7; cursor: default; }
+#feedback-status { display: block; margin-top: 4px; color: var(--text-secondary); font-size: 13px; }
+.research-notes {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--bg-card-border);
+}
+.research-notes h3 { margin: 0 0 8px; color: var(--text-primary); font-size: 15px; }
+.research-notes p { color: var(--text-secondary); font-size: 13px; line-height: 1.7; }
+.research-notes a { color: var(--accent-light); text-decoration: underline; text-underline-offset: 2px; }.submit.is-loading::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: matching-spin 0.8s linear infinite;
+}
+@keyframes matching-spin { to { transform: rotate(360deg); } }
+.time-breakdown-box {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--bg-card-border);
+  border-radius: var(--radius-md);
+  background: var(--input-bg);
+}
+.time-breakdown-box h3 { margin: 0 0 12px; color: var(--text-primary); font-size: 15px; }
+.time-breakdown-list { margin: 0; padding-left: 24px; color: var(--text-secondary); }
+.time-breakdown-list li { padding: 5px 0 5px 4px; line-height: 1.6; }
+.time-breakdown-list li::marker { color: var(--accent); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) {
+  .submit.is-loading::before { animation: none; }
+}

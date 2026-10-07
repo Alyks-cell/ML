@@ -7,9 +7,10 @@ A study method recommender powered by an **Expert System inference engine**. Bui
 ## 🌟 Key Features
 
 1. **Rule-Based Expert System**:
-   - Over 30+ domain-specific rules (Math, Science, History, English, Programming, and general topics).
+   - 18 subject-specific rules plus 7 general challenge rules across Math, Science, History, English, Programming, and general topics.
    - Dynamic struggle filtering: selecting a subject only presents challenges relevant to that domain.
-   - Inference transparency: displays which rule fired in the knowledge base (e.g., `math + solving word problems`).
+   - Inference transparency: explains the matched challenge and labels rule coverage as Strong, Good, or a Starting point. These labels are not success probabilities.
+   - See [RULES.md](RULES.md) for the full condition-action table, fallback paths, time policies, and coverage notes.
 
 2. **Time-Aware Inference Engine**:
    - Adapts the recommended steps and study strategy according to available time (15-min sprint, 30-min session, 60+ min deep dive).
@@ -18,6 +19,8 @@ A study method recommender powered by an **Expert System inference engine**. Bui
    - **Interactive Step Checklist**: Students can click on recommended steps to check them off in real-time as they work.
    - **Built-in Focus Sprint Timer**: Countdown timer (with start/pause/reset) synchronized to the user's selected study duration.
    - **One-Click Plan Copy**: Easily copy the formatted study plan and steps to clipboard for notes or sharing.
+   - **Plan Feedback**: After completing a session, rate whether the recommendation helped. Repeated negative feedback promotes an untried backup method for that challenge; feedback stays in the browser.
+   - **Research Notes**: The page links to research on practice testing and distributed practice, and explains the limits of its rule-fit labels.
 
 4. **Modern Design Aesthetics**:
    - Deep dark theme with glassmorphism backdrop filters and ambient mesh glow.
@@ -37,10 +40,21 @@ A study method recommender powered by an **Expert System inference engine**. Bui
    http://127.0.0.1:8000
    ```
 
+## Rule coverage
+
+Run the exhaustive coverage checks from this directory:
+
+```bash
+python -m unittest test_app.py
+```
+
+The suite checks all 126 listed subject–challenge–time paths and the unknown-challenge fallback.
+
 ---
 
 ## 📐 Expert System Architecture
 
 - **Knowledge Base (`RULES`, `GENERIC_RULES`)**: Stores condition-action pairs: `(Subject, Struggle) -> (Method, Reason, Steps[])`.
-- **Inference Engine (`recommend()`)**: Evaluates forward-chaining rules with domain specificity precedence, falling back gracefully to generalized learning strategies when appropriate.
-- **Explanation Facility (`rule_trace`, `reason`)**: Explains *why* the recommendation was made and *which* rule triggered.
+- **Inference Engine (`recommend()`)**: Uses ordered lookup: subject-and-challenge rule, general challenge rule, then a safe recall starter. Time policies limit the number of displayed steps.
+- **Explanation Facility (`fit`, `reason`)**: Explains the matched challenge and distinguishes subject-specific matches from general fallbacks; labels are rule coverage, not probabilities.
+- **Feedback adaptation**: Two or more negative ratings for a method promote an available backup for that same subject and challenge in that browser.

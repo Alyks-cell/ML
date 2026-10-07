@@ -358,11 +358,26 @@ TIME_MODIFIERS = {
 }
 
 ALTERNATIVE_METHODS = {
-    "Spaced Repetition": "Review the same ideas again after a short delay to strengthen long-term recall.",
-    "Active Recall": "Close your notes and retrieve the answer from memory before checking it.",
-    "Feynman Technique": "Explain the idea in plain language, then revisit any part you cannot explain.",
-    "Cornell Notes": "Turn your notes into cue questions and use them to quiz yourself later.",
-    "Pomodoro": "Focus on one task for a timed sprint, then take a short break.",
+    "Spaced Repetition": {
+        "description": "Review the same ideas again after a short delay to strengthen long-term recall.",
+        "steps": ["Turn the key ideas into questions.", "Try to answer each question from memory.", "Check your notes and mark missed answers.", "Review missed questions tomorrow, then again in a few days."],
+    },
+    "Active Recall": {
+        "description": "Close your notes and retrieve the answer from memory before checking it.",
+        "steps": ["Choose one small topic or idea.", "Close your notes and write what you remember.", "Check your notes and correct missing details.", "Repeat with a new question, then revisit missed parts later."],
+    },
+    "Feynman Technique": {
+        "description": "Explain the idea in plain language, then revisit any part you cannot explain.",
+        "steps": ["Choose one idea you want to understand.", "Explain it aloud in plain language without notes.", "Check your notes for gaps or jargon you could not explain.", "Rewrite the explanation simply and try again."],
+    },
+    "Cornell Notes": {
+        "description": "Turn your notes into cue questions and use them to quiz yourself later.",
+        "steps": ["Divide a page into notes, cue questions, and summary areas.", "Write concise notes while studying.", "Add recall questions in the cue column and summarize the page.", "Cover the notes and answer the cue questions from memory."],
+    },
+    "Pomodoro": {
+        "description": "Focus on one task for a timed sprint, then take a short break.",
+        "steps": ["Choose one specific task and define what done means.", "Set a timer for a focused work sprint.", "Work only on that task until the timer ends.", "Take a short break and decide the next task."],
+    },
 }
 
 METHOD_ALTERNATIVES = {
@@ -414,10 +429,16 @@ def recommend(subject, struggle, time_available="medium"):
     time_info = TIME_MODIFIERS.get(time_available, TIME_MODIFIERS["medium"])
     adjusted_steps = steps[: time_info["max_steps"]]
     alternatives = [
-        {"method": name, "description": ALTERNATIVE_METHODS[name]}
+        {"method": name, **ALTERNATIVE_METHODS[name]}
         for name in METHOD_ALTERNATIVES.get(method.lower(), ["Active Recall", "Spaced Repetition"])
         if not method.lower().startswith(name.lower())
     ][:2]
+    if fired_rule == "default fallback":
+        fit = {"label": "Starting point", "basis": "No specific rule matched; using a general recall plan"}
+    elif fired_rule.startswith("generic:"):
+        fit = {"label": "Good match", "basis": "A general study rule matched this challenge"}
+    else:
+        fit = {"label": "Strong match", "basis": "A subject-specific rule matched"}
 
     return {
         "method": method,
@@ -427,6 +448,7 @@ def recommend(subject, struggle, time_available="medium"):
         "time_note": time_info["note"],
         "time_label": time_info["label"],
         "rule_used": fired_rule,
+        "fit": fit,
         "subject": subject.title(),
         "struggle": struggle.title(),
     }

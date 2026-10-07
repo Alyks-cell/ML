@@ -28,6 +28,7 @@ const copyText = document.getElementById("copy-text");
 const alternativesList = document.getElementById("alternatives-list");
 const markDoneBtn = document.getElementById("mark-done");
 const streakSummary = document.getElementById("streak-summary");
+const feedbackPanel = document.getElementById("feedback-panel");
 
 /* ── State ────────────────────────────────────────────────────── */
 let selectedSubject = "";
@@ -132,8 +133,9 @@ recommendBtn.addEventListener("click", async () => {
   }
 
   recommendBtn.disabled = true;
-  const originalHtml = recommendBtn.innerHTML;
-  recommendBtn.innerHTML = 'Finding your fit <span>…</span>';
+  recommendBtn.classList.add("is-loading");
+  recommendBtn.setAttribute("aria-busy", "true");
+  recommendBtn.textContent = "Matching your best method…";
 
   try {
     const response = await fetch("/recommend", {
@@ -147,6 +149,8 @@ recommendBtn.addEventListener("click", async () => {
     });
     if (!response.ok) throw new Error("Couldn't get a plan right now. Please try again.");
     const data = await response.json();
+    normalizeRecommendation(data);
+    applyPriorFeedback(data);
     currentPlanData = data;
 
     // Populate recommendation content
@@ -157,6 +161,12 @@ recommendBtn.addEventListener("click", async () => {
     document.getElementById("time-note").textContent = data.time_note;
     document.getElementById("result-meta").textContent =
       `${data.subject} · ${data.struggle} · ${data.time_label}`;
+    document.getElementById("fit-label").textContent = data.feedbackAdjusted
+      ? "Feedback-guided · based on your history"
+      : `${data.fit.label} · rule fit, not a probability`;
+    document.getElementById("fit-basis").textContent = data.feedbackAdjusted
+      ? data.fit.basis
+      : data.fit.basis;
 
     alternativesList.replaceChildren();
     (data.alternatives || []).forEach((alternative) => {
@@ -168,6 +178,9 @@ recommendBtn.addEventListener("click", async () => {
     });
     markDoneBtn.disabled = false;
     markDoneBtn.textContent = "Mark session done";
+    feedbackPanel.hidden = true;
+    document.querySelectorAll(".feedback-btn").forEach((button) => { button.disabled = false; });
+    document.getElementById("feedback-status").textContent = "";
     renderStreak();
 
     // Populate actionable steps checklist
@@ -180,6 +193,7 @@ recommendBtn.addEventListener("click", async () => {
       li.tabIndex = 0;
       stepsList.appendChild(li);
     });
+    data.time_breakdown = renderTimeBreakdown(selectedTime, data.steps);
     updateProgress();
 
     // Rule trace for transparency
@@ -196,6 +210,8 @@ recommendBtn.addEventListener("click", async () => {
   } finally {
     recommendBtn.disabled = false;
     recommendBtn.innerHTML = 'Find my study method <span>→</span>';
+    recommendBtn.classList.remove("is-loading");
+    recommendBtn.setAttribute("aria-busy", "false");
   }
 });
 
@@ -226,6 +242,34 @@ function updateProgress() {
   }
 }
 
+function renderTimeBreakdown(timeChoice, steps) {
+  const total = timeChoice === "short" ? 15 : timeChoice === "long" ? 60 : 30;
+  const setup = timeChoice === "short" ? 2 : timeChoice === "long" ? 5 : 3;
+  const review = timeChoice === "short" ? 2 : timeChoice === "long" ? 10 : 3;
+  const work = total - setup - review;
+  const basePerStep = Math.floor(work / steps.length);
+  let extraMinutes = work % steps.length;
+  let minute = setup;
+  const items = [`0–${setup} min: Get your materials ready and set one focus goal.`];
+
+  steps.forEach((step, index) => {
+    const duration = basePerStep + (extraMinutes > 0 ? 1 : 0);
+    extraMinutes -= extraMinutes > 0 ? 1 : 0;
+    items.push(`${minute}–${minute + duration} min: ${step}`);
+    minute += duration;
+  });
+  items.push(`${minute}–${total} min: Check what you remember and note what to review next.`);
+
+  const list = document.getElementById("time-breakdown-list");
+  list.replaceChildren();
+  items.forEach((text) => {
+    const item = document.createElement("li");
+    item.textContent = text;
+    list.appendChild(item);
+  });
+  return items;
+}
+
 function renderStreak() {
   if (!streakSummary) return;
   const saved = JSON.parse(localStorage.getItem("study-buddy-progress") || "{}");
@@ -238,6 +282,63 @@ function renderStreak() {
   streakSummary.textContent = sessions
     ? `${sessions} ${sessions === 1 ? "session" : "sessions"} completed · ${streak}-day streak`
     : "No sessions completed yet. Your progress is saved on this device.";
+}
+
+function feedbackKey(data) {
+  return `${data.subject.toLowerCase()}|${data.struggle.toLowerCase()}`;
+}
+
+function normalizeRecommendation(data) {
+  const incomingFit = data.fit && typeof data.fit === "object" ? data.fit : {};
+  const firedRule = String(data.rule_used || "");
+  let label = incomingFit.label;
+  let basis = incomingFit.basis;
+
+  // Keep the page compatible with older or partially deployed API responses.
+  if (!label) {
+    if (firedRule === "default fallback") {
+      label = "Starting point";
+      basis = basis || "No specific rule matched; using a general recall plan";
+    } else if (firedRule.startsWith("generic:")) {
+      label = "Good match";
+      basis = basis || "A general study rule matched this challenge";
+    } else if (firedRule) {
+      label = "Strong match";
+      basis = basis || "A subject-specific rule matched";
+    } else {
+      label = "Good match";
+      basis = basis || "Fit details are unavailable for this recommendation.";
+    }
+  }
+
+  data.fit = { label, basis: basis || "Fit details are unavailable for this recommendation." };
+  data.alternatives = Array.isArray(data.alternatives) ? data.alternatives : [];
+}
+
+function readRuleFeedback() {
+  return JSON.parse(localStorage.getItem("study-buddy-rule-feedback") || "{}");
+}
+
+function applyPriorFeedback(data) {
+  const record = readRuleFeedback()[feedbackKey(data)];
+  const methodVotes = record && record.methods && record.methods[data.method];
+  if (!methodVotes || methodVotes.notHelped < 2 || methodVotes.notHelped <= methodVotes.helped || !data.alternatives.length) return;
+
+  const preferredIndex = data.alternatives.findIndex((alternative) => {
+    if (!Array.isArray(alternative.steps) || !alternative.method) return false;
+    const votes = record.methods[alternative.method] || { helped: 0, notHelped: 0 };
+    return votes.notHelped < 2 || votes.notHelped <= votes.helped;
+  });
+  if (preferredIndex < 0) return;
+  const previous = { method: data.method, description: "Your previous recommendation", steps: data.steps };
+  const preferred = data.alternatives.splice(preferredIndex, 1)[0];
+  data.method = preferred.method;
+  data.reason = `You previously said this challenge’s last method did not help, so this plan tries ${preferred.method}. ${preferred.description}`;
+  data.steps = preferred.steps.slice(0, data.time_label.startsWith("~15") ? 2 : 4);
+  data.alternatives.unshift(previous);
+  data.feedbackAdjusted = true;
+  data.fit.label = "Feedback-guided";
+  data.fit.basis = "A backup method was promoted after repeated negative feedback for this challenge.";
 }
 
 if (markDoneBtn) {
@@ -257,8 +358,27 @@ if (markDoneBtn) {
     renderStreak();
     markDoneBtn.disabled = true;
     markDoneBtn.textContent = "Session done";
+    feedbackPanel.hidden = false;
   });
 }
+
+document.querySelectorAll(".feedback-btn").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!currentPlanData) return;
+    const records = readRuleFeedback();
+    const key = feedbackKey(currentPlanData);
+    const record = records[key] || { methods: {} };
+    const method = record.methods[currentPlanData.method] || { helped: 0, notHelped: 0 };
+    method[button.dataset.rating === "helped" ? "helped" : "notHelped"] += 1;
+    record.methods[currentPlanData.method] = method;
+    records[key] = record;
+    localStorage.setItem("study-buddy-rule-feedback", JSON.stringify(records));
+    document.querySelectorAll(".feedback-btn").forEach((item) => { item.disabled = true; });
+    document.getElementById("feedback-status").textContent = button.dataset.rating === "helped"
+      ? "Thanks — we’ll keep this match in mind."
+      : "Thanks — after repeated feedback, we’ll prioritize a backup method for this challenge.";
+  });
+});
 
 /* ── Focus Sprint Timer ────────────────────────────────────────── */
 function setupTimer(timeChoice) {
@@ -267,7 +387,7 @@ function setupTimer(timeChoice) {
   let minutes = 25;
   if (timeChoice === "short") minutes = 15;
   else if (timeChoice === "medium") minutes = 30;
-  else if (timeChoice === "long") minutes = 50;
+  else if (timeChoice === "long") minutes = 60;
 
   timerTotalSeconds = minutes * 60;
   timerRemainingSeconds = timerTotalSeconds;
@@ -336,7 +456,7 @@ function setTimerButtonState(running) {
     timerBtnText.textContent = "Pause Timer";
     timerPlayIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
   } else {
-    timerBtnText.textContent = timerRemainingSeconds < timerTotalSeconds ? "Resume Timer" : "Start Focus Timer";
+    timerBtnText.textContent = timerRemainingSeconds < timerTotalSeconds ? "Resume Timer" : "Start Timer";
     timerPlayIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
   }
 }
@@ -379,6 +499,7 @@ if (copyBtn) {
       `Why this method:\n${document.getElementById("method-reason").textContent}\n\n` +
       `Other methods to try:\n${(currentPlanData.alternatives || []).map((item) => `${item.method}: ${item.description}`).join("\n")}\n\n` +
       `Actionable Steps:\n${formattedSteps}\n\n` +
+      `Time Breakdown:\n${(currentPlanData.time_breakdown || []).map((item, idx) => `${idx + 1}. ${item}`).join("\n")}\n\n` +
       `Time Tip:\n${currentPlanData.time_note}`;
 
     try {
